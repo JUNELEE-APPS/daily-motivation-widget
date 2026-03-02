@@ -1,0 +1,468 @@
+/* =========================================
+   CSS 최적화 및 고도화 단계
+   1. 성능 최적화: transform, opacity, will-change를 활용해 GPU (하드웨어 가속) 사용
+   2. 유지보수 및 UX: CSS Custom Properties(변수)를 활용한 테마(다크모드) 관리
+   3. 크로스 브라우저 & 반응형: 미디어 쿼리 단위 및 터치스크린 반응 대응
+========================================= */
+
+/* 1. CSS 변수 선언 (라이트 모드 기본 테마) */
+:root {
+    --bg-gradient: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    --widget-bg: rgba(255, 255, 255, 0.85);
+    --text-main: #2d3748;
+    --text-quote: #4a5568;
+    --text-sub: #718096;
+    --text-quote-mark: #cbd5e0;
+    --border-color: rgba(255, 255, 255, 0.3);
+
+    --btn-primary-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --btn-primary-hover-bg: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    --btn-primary-shadow: rgba(118, 75, 162, 0.25);
+
+    --btn-icon-bg: #edf2f7;
+    --btn-icon-hover-bg: #e2e8f0;
+
+    --skeleton-bg: #e2e8f0;
+    --skeleton-shine: rgba(255, 255, 255, 0.5);
+    --shadow-main: 0 20px 40px rgba(0, 0, 0, 0.1);
+
+    --badge-bg: #ebf4ff;
+    --badge-text: #3182ce;
+}
+
+/* 다크 모드 테마 적용 영역 (변수 오버라이드) */
+body.dark-theme {
+    --bg-gradient: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    --widget-bg: rgba(26, 32, 44, 0.85);
+    --text-main: #f7fafc;
+    --text-quote: #e2e8f0;
+    --text-sub: #a0aec0;
+    --text-quote-mark: #4a5568;
+    --border-color: rgba(255, 255, 255, 0.1);
+
+    --btn-primary-bg: linear-gradient(135deg, #805ad5 0%, #553c9a 100%);
+    --btn-primary-hover-bg: linear-gradient(135deg, #9f7aea 0%, #6b46c1 100%);
+    --btn-primary-shadow: rgba(85, 60, 154, 0.4);
+
+    --btn-icon-bg: #2d3748;
+    --btn-icon-hover-bg: #4a5568;
+
+    --skeleton-bg: #2d3748;
+    --skeleton-shine: rgba(255, 255, 255, 0.05);
+    --shadow-main: 0 20px 40px rgba(0, 0, 0, 0.4);
+
+    --badge-bg: #2b6cb0;
+    --badge-text: #ebf8ff;
+}
+
+/* 2. Reset 및 Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    /* 모바일에서 빠른 렌더링을 위해 시스템 폰트로 우선 폴백 지정 */
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    /* 모바일 터치 시 파란색 깜빡임 제거 */
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.4s ease;
+}
+
+/* 접근성(A11y) 강화: 키보드 탐색 시 포커스 아웃라인 지원 */
+:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 3px;
+}
+
+/* 3. Layout (Widget Container) */
+.widget-container {
+    background: var(--widget-bg);
+    /* 고성능 그래픽 연산을 위한 필터 속성 */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow-main);
+
+    /* 성능 최적화: transform의 변경 가능성을 브라우저에 미리 알림(Layer 분리) */
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        box-shadow 0.3s ease;
+}
+
+.widget-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Header & Controls */
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.5px;
+}
+
+.controls-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+select#category-filter {
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--btn-icon-bg);
+    color: var(--text-main);
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+select#category-filter:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.stats-display span {
+    margin-left: 12px;
+    color: var(--text-sub);
+    font-weight: 500;
+}
+
+/* 4. Quote Section (명언 요소 및 애니메이션) */
+.quote-section {
+    position: relative;
+    min-height: 180px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quote-box {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* 성능 최적화: Reflow(레이아웃 재계산)를 유발하지 않는 opacity와 transform 사용 */
+.quote-box.fade {
+    opacity: 0;
+    transform: translateY(15px);
+    /* 자바스크립트 타이밍 대신, CSS로 60fps 애니메이션 동작 지원 */
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform;
+}
+
+.quote-box.fade.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 텍스트 영역 렌더링 설계 */
+.quote-text {
+    font-size: 1.35rem;
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+    font-weight: 600;
+    color: var(--text-quote);
+    word-break: keep-all;
+    /* 한국어 줄나눔 최적화 */
+}
+
+.quote-text::before,
+.quote-text::after {
+    content: '"';
+    display: inline-block;
+    color: var(--text-quote-mark);
+    font-size: 2rem;
+    vertical-align: middle;
+    line-height: 0;
+    margin: 0 5px;
+}
+
+.quote-author {
+    font-size: 1rem;
+    color: var(--text-sub);
+    font-weight: 500;
+}
+
+.quote-category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--badge-bg);
+    color: var(--badge-text);
+    margin-top: 0.7rem;
+}
+
+/* 5. Skeleton UI (로딩 스피너 대신 사용, 체감 성능 개선) */
+.skeleton-active {
+    display: flex;
+    width: 100%;
+    align-items: center;
+}
+
+.skeleton-text,
+.skeleton-author {
+    width: 100%;
+    background: var(--skeleton-bg);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0.8rem;
+}
+
+.skeleton-text {
+    height: 1.5rem;
+}
+
+.skeleton-text.short {
+    width: 60%;
+    margin-bottom: 1.5rem;
+}
+
+.skeleton-author {
+    width: 30%;
+    height: 1rem;
+}
+
+/* 빛 반사 애니메이션 효과 (하드웨어 가속) */
+.skeleton-text::after,
+.skeleton-author::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(90deg,
+            rgba(255, 255, 255, 0) 0,
+            var(--skeleton-shine) 20%,
+            var(--skeleton-shine) 60%,
+            rgba(255, 255, 255, 0));
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* 6. Buttons & Interactions */
+.widget-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.action-buttons-left {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: var(--btn-icon-bg);
+    color: var(--text-main);
+    font-size: 1.15rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+    /* 모바일 터치 오작동 방지 */
+}
+
+.icon-btn:hover {
+    background: var(--btn-icon-hover-bg);
+    transform: scale(1.05);
+    /* 버튼 터치 피드백 */
+}
+
+.icon-btn:active {
+    transform: scale(0.95);
+}
+
+.icon-btn.active {
+    background: #fefcbf;
+}
+
+body.dark-theme .icon-btn.active {
+    background: #744210;
+}
+
+.next-btn {
+    background: var(--btn-primary-bg);
+    color: white;
+    border: none;
+    padding: 0.9rem 1.6rem;
+    border-radius: 30px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 15px var(--btn-primary-shadow);
+    touch-action: manipulation;
+}
+
+.next-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--btn-primary-shadow);
+    background: var(--btn-primary-hover-bg);
+}
+
+.next-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px var(--btn-primary-shadow);
+}
+
+.next-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+/* 7. Toast Notification (UX 강화) */
+.toast-container {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.toast {
+    background: #2d3748;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    /* 토스트 등장/퇴장 시 페이드 & 슬라이드 (GPU처리) */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+body.dark-theme .toast {
+    background: #edf2f7;
+    color: #1a202c;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 8. 반응형 크로스 브라우저 호환성 */
+
+/* X-Large Devices (1440px) */
+@media (max-width: 1440px) {
+    /* UI Scale 유지 */
+}
+
+/* Tablet Landscape (1024px) */
+@media (max-width: 1024px) {
+    .widget-container {
+        max-width: 480px;
+    }
+}
+
+/* Tablet Portrait & Large Mobile (768px) */
+@media (max-width: 768px) {
+    .widget-container {
+        padding: 2rem 1.5rem;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Small Mobile (480px) */
+@media (max-width: 480px) {
+    .widget-container {
+        padding: 1.5rem;
+        border-radius: 20px;
+        width: 95%;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .quote-text {
+        font-size: 1.15rem;
+    }
+
+    .quote-text::before,
+    .quote-text::after {
+        font-size: 1.5rem;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+    }
+
+    .next-btn {
+        padding: 0.8rem 1.2rem;
+        font-size: 0.95rem;
+    }
+
+    /* 화면이 너무 작을 때 상단 컨트롤 영역 세로 정렬 */
+    .controls-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+
+    .stats-display {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+    }
+}

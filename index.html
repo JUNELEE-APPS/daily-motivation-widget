@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <!-- 보안 최적화 1: Content-Security-Policy를 통해 인라인 스크립트 실행 제한 및 XSS 방지 -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; script-src 'self'; img-src 'self' data:;">
+    <!-- 성능 최적화 1: 정적 리소스 캐싱 권장 메타 태그 (max-age 부여) -->
+    <meta http-equiv="Cache-Control" content="max-age=31536000, immutable">
+
+    <title>Daily Motivation</title>
+
+    <!-- 성능 최적화 2: 렌더링 블로킹을 막기 위한 폰트 Preload (미리 로드) -->
+    <link rel="preload" as="style"
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin>
+
+    <!-- CSS 파일 연결 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="light-theme">
+    <!-- 접근성(A11y) 강화: main 태그와 aria-label 사용으로 스크린리더 지원 -->
+    <main class="widget-container" aria-label="명언 위젯">
+
+        <header class="widget-header">
+            <h1>Daily Motivation</h1>
+            <div class="header-controls">
+                <!-- UX 개선 1: 다크모드 지원 버튼 (aria-label로 접근성 향상) -->
+                <button id="theme-toggle" class="icon-btn" aria-label="다크 모드 전환" title="다크 모드 전환">🌙</button>
+            </div>
+        </header>
+
+        <!-- 추가 기능 1 & 2: 카테고리 필터링 및 통계 컴포넌트 -->
+        <div class="controls-section">
+            <select id="category-filter" aria-label="명언 카테고리 선택">
+                <option value="all">모든 명언</option>
+                <option value="success">성공</option>
+                <option value="challenge">도전</option>
+                <option value="inspiration">영감</option>
+                <option value="wisdom">삶의 지혜</option>
+            </select>
+
+            <!-- aria-live="polite"로 값이 바뀔 때마다 스크린리더가 자연스레 읽도록 처리 -->
+            <div class="stats-display" aria-live="polite">
+                <span title="오늘 본 명언 개수">👁️ <span id="view-count">0</span></span>
+                <span title="저장된 북마크 개수">⭐ <span id="bookmark-count">0</span></span>
+            </div>
+        </div>
+
+        <!-- 접근성 및 UX 개선 2: 스켈레톤 로딩 패널 (초기 체감 속도 향상) -->
+        <section class="quote-section" aria-live="polite" aria-atomic="true">
+            <div class="quote-box skeleton-active" id="quote-box">
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text short"></div>
+                <div class="skeleton-author"></div>
+            </div>
+
+            <!-- 실제 데이터가 표시될 요소 (XSS 방지를 위해 JS단에서 textContent 제어 예정) -->
+            <div class="quote-box hidden fade" id="quote-content-box">
+                <p class="quote-text" id="quote-text"></p>
+                <p class="quote-author" id="quote-author"></p>
+                <span class="quote-category-badge" id="quote-category-badge"></span>
+            </div>
+        </section>
+
+        <!-- UX/UI 개선 3: 터치 및 상호작용 피드백이 강화된 조작부 -->
+        <footer class="widget-actions">
+            <!-- 추가 기능 3: 북마크, 클립보드 복사, 운영체제 Web API 공유 버튼 생성 -->
+            <div class="action-buttons-left">
+                <button id="bookmark-btn" class="icon-btn" aria-label="현재 명언 북마크/해제" title="북마크">⭐</button>
+                <button id="copy-btn" class="icon-btn" aria-label="명언 복사하기" title="복사">📋</button>
+                <button id="share-btn" class="icon-btn" aria-label="명언 공유하기" title="공유">🔗</button>
+            </div>
+            <button id="next-btn" class="next-btn" aria-label="다음 명언 보기">다음 명언 🚀</button>
+        </footer>
+
+        <!-- UX 개선 4: 행동 결과를 알려주는 토스트 알림 컨테이너 -->
+        <div id="toast-container" class="toast-container" aria-live="polite"></div>
+    </main>
+
+    <!-- 성능 최적화 3: defer 속성을 사용하여 HTML 파싱을 막지 않고 DOM 로드 후 JS를 실행되게 함 -->
+    <script src="script.js" defer></script>
+</body>
+
+</html>
